@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>영업관리</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1f5eff">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="영업관리">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root{
+  --bg:#f4f5f7; --card:#fff; --text:#191c21; --muted:#6b7280; --line:#e4e7ec; --soft:#f0f2f5;
+  --accent:#1f5eff; --accent-soft:#e8efff; --ok:#0e7a55; --ok-soft:#e3f5ee; --warn:#a15c00; --warn-soft:#fff3e0;
+  --doc:#1f5eff; --doc-soft:#e8efff; --ship:#c26a00; --ship-soft:#fff1dc; --inst:#0e7a55; --inst-soft:#e3f5ee;
+  --danger:#c62828; --danger-soft:#fdecec; --radius:12px; --shadow:0 1px 2px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.04);
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#0f1115; --card:#181b21; --text:#e8eaee; --muted:#9aa1ad; --line:#2a2f38; --soft:#20242c;
+    --accent:#5b8cff; --accent-soft:#1d2a4a; --ok:#3ccf91; --ok-soft:#163328; --warn:#f0a43c; --warn-soft:#3a2a12;
+    --doc:#6f9bff; --doc-soft:#1d2a4a; --ship:#f5a640; --ship-soft:#3a2a12; --inst:#3ccf91; --inst-soft:#163328;
+    --danger:#ff6b6b; --danger-soft:#3b1a1a; --shadow:none; }
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:Pretendard,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;font-size:15px;line-height:1.5;-webkit-text-size-adjust:100%}
+button,input,textarea,select{font:inherit;color:inherit}
+a{color:var(--accent)}
+.wrap{max-width:980px;margin:0 auto;padding:16px}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+
+/* 버튼 */
+.btn{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:10px 16px;cursor:pointer;font-weight:600;white-space:nowrap}
+.btn:hover{background:var(--soft)}
+.btn:disabled{opacity:.55;cursor:default}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{filter:brightness(.95)}
+.btn.ok{background:var(--ok);border-color:var(--ok);color:#fff}
+.btn.danger{color:var(--danger);border-color:var(--danger-soft);background:var(--danger-soft)}
+.btn.ghost{background:transparent;border-color:transparent}
+.btn.ghost:hover{background:var(--soft)}
+.btn.sm{padding:6px 10px;font-size:13px;border-radius:8px}
+.btn.block{width:100%}
+
+/* 폼 */
+.form{display:grid;gap:14px}
+.grid2{grid-template-columns:1fr 1fr}
+.grid2 .full{grid-column:1/-1}
+@media (max-width:640px){.grid2{grid-template-columns:1fr}}
+.fld{display:grid;gap:6px}
+.fld>span{font-size:13px;font-weight:600;color:var(--muted)}
+.fld>span b{color:var(--danger);font-weight:600}
+.fld input,.fld textarea,.fld select,.inp{width:100%;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:11px 12px;outline:none}
+.fld input:focus,.fld textarea:focus,.inp:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.fld textarea{resize:vertical;min-height:132px;line-height:1.6}
+.hint{font-size:12.5px;min-height:0}
+.hint.err{color:var(--danger)} .hint.good{color:var(--ok)}
+.msg{font-size:14px;color:var(--danger);min-height:0}
+.msg:empty{display:none}
+.actions{display:flex;gap:8px;justify-content:flex-end}
+
+/* 로그인 */
+.auth{min-height:100vh;display:grid;place-items:center;padding:24px 16px}
+.auth-card{width:100%;max-width:380px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:28px 24px;box-shadow:var(--shadow)}
+.brand{text-align:center;margin-bottom:22px}
+.brand h1{margin:10px 0 2px;font-size:22px}
+.brand p{margin:0;color:var(--muted);font-size:14px}
+.logo{display:inline-grid;place-items:center;width:44px;height:44px;border-radius:12px;background:var(--accent);color:#fff;font-weight:800;letter-spacing:-.5px}
+.logo.sm{width:28px;height:28px;border-radius:8px;font-size:12px}
+.switch{text-align:center;font-size:14px;color:var(--muted);margin:18px 0 0}
+.done{text-align:center}
+.done .ic{width:52px;height:52px;border-radius:50%;background:var(--ok-soft);color:var(--ok);display:inline-grid;place-items:center;font-size:26px;margin-bottom:8px}
+
+/* 상단 */
+.top{position:sticky;top:0;z-index:10;background:var(--card);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top)}
+.install-btn{color:var(--accent);border-color:var(--accent-soft);background:var(--accent-soft)}
+.who .install-slot:empty{display:none}
+.who .install-slot{margin-right:4px}
+.top-in{max-width:980px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px;justify-content:space-between}
+.brand-s{display:flex;align-items:center;gap:8px;font-size:16px}
+.tag{font-size:11.5px;font-weight:700;color:var(--accent);background:var(--accent-soft);padding:2px 8px;border-radius:99px}
+.who{display:flex;align-items:center;gap:2px;font-size:14px}
+.who .nm{margin-right:6px;font-weight:600}
+@media (max-width:520px){.who .nm{display:none}}
+.tabs{border-top:1px solid var(--line)}
+.tabs-in{max-width:980px;margin:0 auto;padding:0 8px;display:flex;overflow-x:auto;scrollbar-width:none}
+.tabs-in::-webkit-scrollbar{display:none}
+.tabs button{flex:0 0 auto;border:0;background:none;padding:12px 12px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;display:flex;gap:6px;align-items:center}
+.tabs button.on{color:var(--text);border-bottom-color:var(--accent)}
+.badge{background:var(--danger);color:#fff;border-radius:99px;font-size:11px;padding:0 6px;line-height:18px;min-width:18px;text-align:center}
+.badge:empty{display:none}
+
+/* 카드 */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow)}
+.card+.card{margin-top:14px}
+.card-h{display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.card-h h2{margin:0;font-size:18px;flex:1}
+.note{background:var(--soft);border-radius:10px;padding:10px 12px;font-size:13.5px;color:var(--muted)}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.toolbar .inp{width:auto;flex:1 1 160px;padding:9px 12px}
+.toolbar select.inp{flex:0 1 150px}
+
+/* 통계 */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px}
+.stat .l{font-size:13px;color:var(--muted)}
+.stat .v{font-size:24px;font-weight:700;margin-top:2px}
+.stat .v small{font-size:14px;font-weight:600;color:var(--muted);margin-left:2px}
+
+/* 목록 아이템 */
+.list{display:grid;gap:10px}
+.item{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px}
+.item-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.item-h .t{font-weight:700;font-size:16px}
+.item-h .sp{flex:1}
+.item-sub{font-size:13.5px;color:var(--muted);margin-top:4px;display:flex;flex-wrap:wrap;gap:4px 12px}
+.item details{margin-top:10px}
+.item summary{cursor:pointer;font-size:13.5px;color:var(--accent);font-weight:600}
+.kv{display:grid;grid-template-columns:110px 1fr;gap:6px 12px;font-size:14px;margin-top:10px}
+.kv dt{color:var(--muted)} .kv dd{margin:0;word-break:break-all}
+.memo{white-space:pre-wrap}
+.owner{font-size:12px;font-weight:600;background:var(--soft);padding:2px 8px;border-radius:99px;color:var(--muted)}
+.empty{text-align:center;color:var(--muted);padding:40px 16px}
+
+/* 진행상태 */
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;padding:4px 10px;border-radius:99px;background:var(--soft);color:var(--muted)}
+.chip i{width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.45}
+.chip.on i{opacity:1}
+.chip.on.docDate{background:var(--doc-soft);color:var(--doc)}
+.chip.on.shipDate{background:var(--ship-soft);color:var(--ship)}
+.chip.on.installDate{background:var(--inst-soft);color:var(--inst)}
+.chip em{font-style:normal;font-weight:500}
+.st-edit{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+@media (max-width:640px){.st-edit{grid-template-columns:1fr}}
+.st{border:1px solid var(--line);border-radius:10px;padding:8px 10px;display:flex;align-items:center;gap:8px;justify-content:space-between}
+.st label{display:flex;align-items:center;gap:6px;font-weight:600;font-size:14px;cursor:pointer;white-space:nowrap}
+.st input[type=checkbox]{width:18px;height:18px}
+.st.docDate label{color:var(--doc)} .st.docDate input[type=checkbox]{accent-color:var(--doc)}
+.st.shipDate label{color:var(--ship)} .st.shipDate input[type=checkbox]{accent-color:var(--ship)}
+.st.installDate label{color:var(--inst)} .st.installDate input[type=checkbox]{accent-color:var(--inst)}
+.st.on.docDate{border-color:var(--doc);background:var(--doc-soft)}
+.st.on.shipDate{border-color:var(--ship);background:var(--ship-soft)}
+.st.on.installDate{border-color:var(--inst);background:var(--inst-soft)}
+
+/* 필수 입력 안내 · 주소 */
+.ferr{font-size:12.5px;color:var(--danger)} .ferr:empty{display:none}
+.fld.invalid input:not([name=addr2]),.fld.invalid textarea{border-color:var(--danger)}
+.err-box{border:1px solid var(--danger);background:var(--danger-soft);color:var(--danger);border-radius:10px;padding:10px 14px;font-size:14px}
+.err-box:empty{display:none}
+.err-box ul{margin:4px 0 0;padding-left:18px}
+.addr-row{display:flex;gap:8px}
+.addr-row input{flex:1;cursor:pointer}
+.addr-row input[readonly]{background:var(--soft)}
+.modal .card.addr-card{max-width:520px;padding:14px}
+#pc-box{height:min(470px,70vh);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.st input[type=date]{border:1px solid var(--line);border-radius:8px;padding:4px 6px;background:var(--card);font-size:13px;min-width:0;max-width:140px}
+
+/* 표 */
+.tbl{width:100%;border-collapse:collapse;font-size:14.5px}
+.tbl th,.tbl td{padding:11px 10px;border-bottom:1px solid var(--line);text-align:left}
+.tbl th{font-size:13px;color:var(--muted);font-weight:600}
+.tbl td.n,.tbl th.n{text-align:right;font-variant-numeric:tabular-nums}
+.tbl tr.me td{background:var(--accent-soft)}
+.tbl tfoot td{font-weight:700;border-bottom:0}
+.seg{display:inline-flex;background:var(--soft);border-radius:10px;padding:3px}
+.seg button{border:0;background:none;padding:7px 16px;border-radius:8px;font-weight:600;color:var(--muted);cursor:pointer}
+.seg button.on{background:var(--card);color:var(--text);box-shadow:var(--shadow)}
+.pill{font-size:12px;font-weight:700;padding:2px 8px;border-radius:99px}
+.pill.대기{background:var(--warn-soft);color:var(--warn)} .pill.승인{background:var(--ok-soft);color:var(--ok)}
+.pill.거절,.pill.중지{background:var(--danger-soft);color:var(--danger)}
+.row-btns{display:flex;gap:6px;flex-wrap:wrap}
+
+/* 모달 · 알림 */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.4);display:grid;place-items:center;padding:16px;z-index:50}
+.modal .card{width:100%;max-width:380px}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:60;display:grid;gap:8px;width:calc(100% - 32px);max-width:420px;pointer-events:none}
+.toast{background:#1d2129;color:#fff;padding:12px 16px;border-radius:10px;font-size:14px;box-shadow:0 6px 20px rgba(0,0,0,.2);animation:tin .2s ease}
+.toast.err{background:var(--danger)}
+@keyframes tin{from{opacity:0;transform:translateY(8px)}}
+.loading{padding:40px;text-align:center;color:var(--muted)}
+</style>
+</head>
+<body>
+<div id="app"><div class="loading">불러오는 중…</div></div>
+<div id="toast"></div>
+<script>
+// ───────── 기본 도구 ─────────
+const S = { token: null, user: null, tab: null, users: [], sales: [], mine: [], f: { q: '', owner: '', stage: '' }, month: '', repMode: 'received' };
+const app = document.getElementById('app');
+const $ = (s, el) => (el || document).querySelector(s);
+const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const pad = n => String(n).padStart(2, '0');
+const today = () => { const d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
+const thisMonth = () => today().slice(0, 7);
+const digits = v => String(v || '').replace(/\D/g, '');
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+  del(k) { try { localStorage.removeItem(k); } catch (e) {} },
+};
+const STAT = [['docDate', '서류접수'], ['shipDate', '출고대기'], ['installDate', '설치완료']];
+
+function fmtPhone(v) {
+  const d = digits(v).slice(0, 11);
+  if (d.startsWith('02')) {
+    if (d.length <= 2) return d;
+    if (d.length <= 5) return d.slice(0, 2) + '-' + d.slice(2);
+    if (d.length <= 9) return d.slice(0, 2) + '-' + d.slice(2, 5) + '-' + d.slice(5);
+    return d.slice(0, 2) + '-' + d.slice(2, 6) + '-' + d.slice(6);
+  }
+  if (d.length <= 3) return d;
+  if (d.length <= 6) return d.slice(0, 3) + '-' + d.slice(3);
+  if (d.length <= 10) return d.slice(0, 3) + '-' + d.slice(3, 6) + '-' + d.slice(6);
+  return d.slice(0, 3) + '-' + d.slice(3, 7) + '-' + d.slice(7);
+}
+function fmtBiz(v) {
+  const d = digits(v).slice(0, 10);
+  if (d.length <= 3) return d;
+  if (d.length <= 5) return d.slice(0, 3) + '-' + d.slice(3);
+  return d.slice(0, 3) + '-' + d.slice(3, 5) + '-' + d.slice(5);
+}
+
+// 데이터 서버(구글 Apps Script 웹 앱) 주소
+const API_URL = 'https://script.google.com/macros/s/AKfycbxOFDFHvdE-5o4ZL62AFtxJQo7d3VXOkwt2KMyDVrApgR-Z3jh-D5hsbGBSTNe6u4Kb/exec';
+// 구글 웹 앱 안에서 열렸으면 google.script.run, 별도 주소에서 열렸으면 fetch 사용
+const IN_GAS = !!(window.google && google.script && google.script.run);
+
+function rawCall(action, payload) {
+  const body = { action, token: S.token, payload: payload || {} };
+  if (IN_GAS) {
+    return new Promise((resolve, reject) => {
+      google.script.run
+        .withSuccessHandler(resolve)
+        .withFailureHandler(e => reject(new Error((e && e.message) || '서버 연결에 실패했습니다.')))
+        .api(body.action, body.token, body.payload);
+    });
+  }
+  // text/plain 으로 보내야 브라우저 사전 확인(CORS) 없이 바로 전송됨. 구글 로그인 정보는 보내지 않음.
+  return fetch(API_URL, { method: 'POST', body: JSON.stringify(body), credentials: 'omit' })
+    .then(r => { if (!r.ok) throw new Error('서버 연결에 실패했습니다.'); return r.json(); })
+    .catch(e => { throw new Error(/fetch|network/i.test(e.message) ? '인터넷 연결을 확인해 주세요.' : e.message); });
+}
+
+function call(action, payload) {
+  return rawCall(action, payload).then(r => {
+    if (r && r.ok) return r.data;
+    if (r && r.auth && action !== 'login') { clearSession(); renderLogin(); }
+    throw new Error(r ? r.error : '응답이 없습니다.');
+  });
+}
+
+// ───────── 앱 설치 버튼 ─────────
+let installEvt = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; refreshInstall(); });
+window.addEventListener('appinstalled', () => { installEvt = null; refreshInstall(); toast('앱이 설치되었습니다.'); });
+function refreshInstall() {
+  document.querySelectorAll('.install-slot').forEach(el => {
+    el.innerHTML = installEvt ? '<button type="button" class="btn sm install-btn" data-install>📲 앱 설치</button>' : '';
+  });
+}
+document.addEventListener('click', async e => {
+  if (!e.target.closest('[data-install]') || !installEvt) return;
+  installEvt.prompt();
+  await installEvt.userChoice;
+  installEvt = null; refreshInstall();
+});
+if ('serviceWorker' in navigator && location.protocol === 'https:' && !IN_GAS) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+
+function toast(msg, type) {
+  const el = document.createElement('div');
+  el.className = 'toast' + (type === 'err' ? ' err' : '');
+  el.textContent = msg;
+  $('#toast').appendChild(el);
+  setTimeout(() => el.remove(), 3200);
+}
+
+async function busy(btn, fn) {
+  const label = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = '처리 중…'; }
+  try { return await fn(); }
+  catch (e) { toast(e.message, 'err'); }
+  finally { if (btn) { btn.disabled = false; btn.textContent = label; } }
+}
+
+function bindFormat(root) {
+  root.querySelectorAll('[data-fmt]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      inp.value = inp.dataset.fmt === 'biz' ? fmtBiz(inp.value) : fmtPhone(inp.value);
+    });
+  });
+}
+
+function formData(form) {
+  const o = {};
+  new FormData(form).forEach((v, k) => { o[k] = typeof v === 'string' ? v.trim() : v; });
+  return o;
+}
+
+function clearSession() { S.token = null; S.user = null; store.del('tm_token'); }
+
+// 구글 웹 앱에서는 브라우저 기본 confirm 창이 막혀 있어서 화면 안에 직접 그림
+function ask(message, okLabel, danger) {
+  return new Promise(resolve => {
+    const wrap = document.createElement('div');
+    wrap.className = 'modal';
+    wrap.innerHTML = `<div class="card">
+      <p style="margin:0 0 18px;font-size:15.5px;line-height:1.6">${esc(message)}</p>
+      <div class="actions"><button class="btn" data-a="0">취소</button>
+      <button class="btn ${danger ? 'danger' : 'primary'}" data-a="1">${esc(okLabel || '확인')}</button></div></div>`;
+    document.body.appendChild(wrap);
+    wrap.addEventListener('click', e => {
+      const b = e.target.closest('[data-a]');
+      if (b || e.target === wrap) { wrap.remove(); resolve(!!b && b.dataset.a === '1'); }
+    });
+  });
+}
+
+function modal(html, onSubmit) {
+  const wrap = document.createElement('div');
+  wrap.className = 'modal';
+  wrap.innerHTML = `<div class="card">${html}</div>`;
+  document.body.appendChild(wrap);
+  const close = () => wrap.remove();
+  wrap.addEventListener('click', e => { if (e.target === wrap || e.target.closest('[data-close]')) close(); });
+  const form = $('form', wrap);
+  if (form) {
+    bindFormat(form);
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      await busy($('button.primary', form), async () => { if (await onSubmit(formData(form)) !== false) close(); });
+    });
+    const first = $('input', form); if (first) first.focus();
+  }
+  return close;
+}
+
+// ───────── 시작 ─────────
+async function boot() {
+  const t = store.get('tm_token');
+  if (!t) return renderLogin();
+  S.token = t;
+  try { S.user = await call('me'); enterApp(); }
+  catch (e) { clearSession(); renderLogin(); }
+}
+
+// ───────── 로그인 / 회원가입 ─────────
+function renderLogin(notice) {
+  app.innerHTML = `
+  <div class="auth"><div class="auth-card">
+    <div class="brand"><span class="logo">TM</span><h1>영업관리</h1><p>직원 전화영업 업무 시스템</p></div>
+    <form class="form" id="f-login">
+      <label class="fld"><span>아이디</span><input name="loginId" autocomplete="username" required></label>
+      <label class="fld"><span>비밀번호</span><input name="password" type="password" autocomplete="current-password" required></label>
+      <div class="msg" id="login-msg">${esc(notice || '')}</div>
+      <button class="btn primary block">로그인</button>
+    </form>
+    <p class="switch">처음 사용하시나요? <a href="#" id="go-reg">직원 회원가입</a></p>
+    <div class="install-slot" style="text-align:center;margin-top:14px"></div>
+  </div></div>`;
+  refreshInstall();
+  $('#go-reg').onclick = e => { e.preventDefault(); renderRegister(); };
+  $('#f-login').onsubmit = async e => {
+    e.preventDefault();
+    const btn = $('button', e.target);
+    const msg = $('#login-msg');
+    msg.textContent = '';
+    btn.disabled = true; btn.textContent = '확인 중…';
+    try {
+      const r = await call('login', formData(e.target));
+      S.token = r.token; S.user = r.user; store.set('tm_token', r.token);
+      enterApp();
+    } catch (err) {
+      msg.textContent = err.message;
+      btn.disabled = false; btn.textContent = '로그인';
+    }
+  };
+}
+
+function renderRegister() {
+  app.innerHTML = `
+  <div class="auth"><div class="auth-card">
+    <div class="brand"><span class="logo">TM</span><h1>직원 회원가입</h1><p>가입 후 관리자 승인이 필요합니다</p></div>
+    <form class="form" id="f-reg">
+      <label class="fld"><span>성명 <b>*</b></span><input name="name" required></label>
+      <label class="fld"><span>전화번호 <b>*</b></span><input name="phone" type="tel" inputmode="numeric" data-fmt="phone" placeholder="010-0000-0000" required></label>
+      <label class="fld"><span>아이디 <b>*</b></span><input name="loginId" autocomplete="username" placeholder="영문/숫자 4~20자" required></label>
+      <label class="fld"><span>비밀번호 <b>*</b></span><input name="password" type="password" autocomplete="new-password" placeholder="6자 이상" required></label>
+      <label class="fld"><span>비밀번호 확인 <b>*</b></span><input name="password2" type="password" autocomplete="new-password" required></label>
+      <div class="msg" id="reg-msg"></div>
+      <button class="btn primary block">가입 신청</button>
+    </form>
+    <p class="switch">이미 계정이 있나요? <a href="#" id="go-login">로그인</a></p>
+  </div></div>`;
+  bindFormat(app);
+  $('#go-login').onclick = e => { e.preventDefault(); renderLogin(); };
+  $('#f-reg').onsubmit = async e => {
+    e.preventDefault();
+    const d = formData(e.target);
+    const msg = $('#reg-msg');
+    if (d.password !== d.password2) { msg.textContent = '비밀번호 확인이 일치하지 않습니다.'; return; }
+    msg.textContent = '';
+    const btn = $('button', e.target);
+    btn.disabled = true; btn.textContent = '신청 중…';
+    try {
+      await call('register', d);
+      $('.auth-card').innerHTML = `
+        <div class="done"><div class="ic">✓</div><h2 style="margin:6px 0">가입 신청 완료</h2>
+        <p class="muted">관리자가 승인하면 로그인할 수 있습니다.</p>
+        <button class="btn primary block" id="go-login2" style="margin-top:12px">로그인 화면으로</button></div>`;
+      $('#go-login2').onclick = () => renderLogin();
+    } catch (err) {
+      msg.textContent = err.message;
+      btn.disabled = false; btn.textContent = '가입 신청';
+    }
+  };
+}
+
+// ───────── 앱 화면 틀 ─────────
+const STAFF_TABS = [['new', '영업 입력'], ['mine', '내 영업 목록'], ['team', '전체 현황']];
+const ADMIN_TABS = [['pending', '가입 승인'], ['sales', '영업 내역'], ['report', '실적'], ['staff', '직원 관리']];
+const isAdmin = () => S.user && S.user.role === '관리자';
+
+async function enterApp() {
+  const tabs = isAdmin() ? ADMIN_TABS : STAFF_TABS;
+  app.innerHTML = `
+  <header class="top">
+    <div class="top-in">
+      <div class="brand-s"><span class="logo sm">TM</span><b>영업관리</b>${isAdmin() ? '<span class="tag">관리자</span>' : ''}</div>
+      <div class="who"><span class="install-slot"></span><span class="nm">${esc(S.user.name)}님</span>
+        <button class="btn ghost sm" id="btn-pw">비밀번호 변경</button>
+        <button class="btn ghost sm" id="btn-out">로그아웃</button></div>
+    </div>
+    <nav class="tabs"><div class="tabs-in">${tabs.map(([k, l]) => `<button data-tab="${k}">${l}<span class="badge" id="badge-${k}"></span></button>`).join('')}</div></nav>
+  </header>
+  <main id="main" class="wrap"><div class="loading">불러오는 중…</div></main>`;
+  $('.tabs-in').onclick = e => { const b = e.target.closest('[data-tab]'); if (b) go(b.dataset.tab); };
+  $('#btn-out').onclick = () => { call('logout').catch(() => {}); clearSession(); renderLogin(); };
+  $('#btn-pw').onclick = openPwModal;
+  refreshInstall();
+  S.month = thisMonth();
+  if (isAdmin()) {
+    await loadAdmin();
+    const pending = S.users.filter(u => u.status === '대기').length;
+    go(pending ? 'pending' : 'sales');
+  } else {
+    go('new');
+  }
+}
+
+function go(tab) {
+  S.tab = tab;
+  document.querySelectorAll('.tabs [data-tab]').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
+  window.scrollTo(0, 0);
+  ({ new: () => renderSaleForm(null), mine: renderMine, team: renderTeam,
+     pending: renderPending, sales: renderAdminSales, report: renderReport, staff: renderStaff })[tab]();
+}
+
+const main = () => $('#main');
+
+function openPwModal() {
+  modal(`
+    <div class="card-h"><h2>비밀번호 변경</h2></div>
+    <form class="form">
+      <label class="fld"><span>현재 비밀번호</span><input name="current" type="password" required></label>
+      <label class="fld"><span>새 비밀번호 (6자 이상)</span><input name="next" type="password" required></label>
+      <label class="fld"><span>새 비밀번호 확인</span><input name="next2" type="password" required></label>
+      <div class="actions"><button type="button" class="btn" data-close>취소</button><button class="btn primary">변경</button></div>
+    </form>`, async d => {
+    if (d.next !== d.next2) { toast('새 비밀번호 확인이 일치하지 않습니다.', 'err'); return false; }
+    await call('changeMyPassword', d);
+    toast('비밀번호가 변경되었습니다.');
+  });
+}
+
+// ───────── 진행상태 표시 ─────────
+function chips(s) {
+  return `<div class="chips">${STAT.map(([k, l]) =>
+    `<span class="chip ${k} ${s[k] ? 'on' : ''}"><i></i>${l}${s[k] ? ` <em>${esc(s[k])}</em>` : ''}</span>`).join('')}</div>`;
+}
+function stageOf(s) { return s.installDate ? 'install' : s.shipDate ? 'ship' : s.docDate ? 'doc' : 'none'; }
+
+// ───────── 직원: 영업 입력 / 수정 ─────────
+function renderSaleForm(sale) {
+  const v = sale || {};
+  const isEdit = !!sale;
+  const fld = (name, label, req, attrs) =>
+    `<div class="fld"><span>${label}${req ? ' <b>*</b>' : ''}</span><input name="${name}" value="${esc(v[name])}" ${attrs || ''}><div class="ferr"></div></div>`;
+  main().innerHTML = `
+  <section class="card">
+    <div class="card-h">
+      ${isEdit ? '<button class="btn sm" id="back">← 목록</button>' : ''}
+      <h2>${isEdit ? '영업 내용 수정' : '영업 내용 입력'}</h2>
+    </div>
+    ${isEdit ? `<div style="margin:-6px 0 16px"><div class="small muted">진행상태 (관리자 확인)</div>${chips(v)}</div>` : ''}
+    <form class="form grid2" id="f-sale" novalidate>
+      ${fld('company', '상호명', true)}
+      <div class="fld">
+        <span>사업자등록번호 <b>*</b></span>
+        <input name="bizNo" value="${esc(v.bizNo)}" inputmode="numeric" data-fmt="biz" placeholder="000-00-00000">
+        <div class="hint" id="biz-hint"></div>
+        <div class="ferr"></div>
+      </div>
+      <div class="fld full">
+        <span>사업장 주소 <b>*</b></span>
+        <div class="addr-row">
+          <input name="addr1" value="${esc(v.address)}" readonly placeholder="[주소 검색]을 눌러 주소를 찾아주세요">
+          <button type="button" class="btn" id="addr-btn">주소 검색</button>
+        </div>
+        <input name="addr2" placeholder="상세주소 (동·호수, 층 등 / 선택)">
+        <div class="ferr"></div>
+      </div>
+      ${fld('ceo', '대표자 성명', true)}
+      ${fld('ceoPhone', '대표자 휴대폰번호', true, 'type="tel" inputmode="numeric" data-fmt="phone" placeholder="010-0000-0000"')}
+      <div class="full">${fld('email', '이메일 주소', true, 'type="email" inputmode="email" placeholder="example@email.com"')}</div>
+      <label class="fld full"><span>특이사항</span><textarea name="memo" rows="5" placeholder="통화 내용, 다음 연락 일정 등">${esc(v.memo)}</textarea></label>
+      ${isEdit ? '' : '<div class="note full">서류접수 · 출고대기 · 설치완료는 관리자가 확인 후 체크합니다. [내 영업 목록]에서 날짜와 함께 확인할 수 있습니다.</div>'}
+      <div class="err-box full" id="sale-err"></div>
+      <div class="full actions">
+        ${isEdit ? '' : '<button type="reset" class="btn">초기화</button>'}
+        <button class="btn primary">${isEdit ? '수정 저장' : '저장'}</button>
+      </div>
+    </form>
+  </section>`;
+  const form = $('#f-sale');
+  bindFormat(form);
+  if (isEdit) $('#back').onclick = () => go('mine');
+
+  const bizInp = form.bizNo, hint = $('#biz-hint');
+  let bizSeq = 0;
+  const checkBiz = async () => {
+    const d = digits(bizInp.value);
+    hint.className = 'hint'; hint.textContent = '';
+    if (!d) return;
+    if (d.length !== 10) { hint.className = 'hint err'; hint.textContent = '10자리를 입력해 주세요.'; return; }
+    const seq = ++bizSeq;
+    try {
+      const r = await call('checkBizNo', { bizNo: d, excludeId: v.id || '' });
+      if (seq !== bizSeq) return;
+      if (r.duplicate) { hint.className = 'hint err'; hint.textContent = `이미 등록된 업체입니다 (담당: ${r.ownerName})`; }
+      else { hint.className = 'hint good'; hint.textContent = '등록 가능한 사업자등록번호입니다.'; }
+    } catch (e) {}
+  };
+  bizInp.addEventListener('blur', checkBiz);
+  bizInp.addEventListener('input', () => { if (digits(bizInp.value).length === 10) checkBiz(); else { hint.textContent = ''; } });
+  form.addEventListener('reset', () => { hint.textContent = ''; clearErrors(form); });
+
+  // 주소 검색 (카카오 우편번호)
+  const pickAddr = async () => {
+    const ok = await openAddressSearch(addr => {
+      form.addr1.value = addr;
+      clearFieldError(form.addr1);
+      form.addr2.focus();
+    });
+    if (!ok) { form.addr1.readOnly = false; form.addr1.placeholder = '주소를 직접 입력해 주세요'; form.addr1.focus(); }
+  };
+  $('#addr-btn').onclick = pickAddr;
+  form.addr1.addEventListener('click', () => { if (form.addr1.readOnly) pickAddr(); });
+
+  // 입력하면 해당 칸의 빨간 안내는 지움
+  form.addEventListener('input', e => clearFieldError(e.target));
+
+  form.onsubmit = async e => {
+    e.preventDefault();
+    const errs = validateSale(form);
+    if (errs.length) { showErrors(form, errs); return; }
+    clearErrors(form);
+    await busy($('button.primary', form), async () => {
+      const d = formData(form);
+      d.address = [d.addr1, d.addr2].filter(Boolean).join(' ');
+      delete d.addr1; delete d.addr2;
+      if (isEdit) d.id = v.id;
+      await call('saveSale', d);
+      toast(isEdit ? '수정되었습니다.' : '저장되었습니다.');
+      if (isEdit) go('mine'); else { form.reset(); form.company.focus(); }
+    });
+  };
+}
+
+// ───────── 입력 확인 (빈칸 안내) ─────────
+const SALE_REQ = [
+  ['company', '상호명'], ['bizNo', '사업자등록번호'], ['addr1', '사업장 주소'],
+  ['ceo', '대표자 성명'], ['ceoPhone', '대표자 휴대폰번호'], ['email', '이메일 주소'],
+];
+const josa = w => { const c = w.charCodeAt(w.length - 1) - 0xAC00; return c >= 0 && c <= 11171 && c % 28 ? '을' : '를'; };
+
+function validateSale(form) {
+  const val = n => form[n].value.trim();
+  const errs = [];
+  SALE_REQ.forEach(([n, l]) => { if (!val(n)) errs.push({ name: n, label: l, msg: `${l}${josa(l)} 입력해 주세요.`, empty: true }); });
+  const has = n => !errs.some(e => e.name === n);
+  if (has('bizNo') && digits(val('bizNo')).length !== 10) errs.push({ name: 'bizNo', label: '사업자등록번호', msg: '사업자등록번호 10자리를 모두 입력해 주세요.' });
+  if (has('ceoPhone') && digits(val('ceoPhone')).length < 10) errs.push({ name: 'ceoPhone', label: '대표자 휴대폰번호', msg: '휴대폰번호를 끝까지 입력해 주세요.' });
+  if (has('email') && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val('email'))) errs.push({ name: 'email', label: '이메일 주소', msg: '이메일 형식이 맞지 않습니다. (예: name@email.com)' });
+  // 화면 순서대로 정렬
+  const order = SALE_REQ.map(r => r[0]);
+  return errs.sort((a, b) => order.indexOf(a.name) - order.indexOf(b.name));
+}
+
+function showErrors(form, errs) {
+  clearErrors(form);
+  errs.forEach(e => {
+    const box = form[e.name].closest('.fld');
+    box.classList.add('invalid');
+    $('.ferr', box).textContent = e.msg;
+  });
+  const empty = errs.filter(e => e.empty).map(e => e.label);
+  const other = errs.filter(e => !e.empty).map(e => e.msg);
+  $('#sale-err').innerHTML = `<b>저장할 수 없습니다.</b><ul>
+    ${empty.length ? `<li>빈칸: ${esc(empty.join(', '))}</li>` : ''}
+    ${other.map(m => `<li>${esc(m)}</li>`).join('')}</ul>`;
+  const first = form[errs[0].name];
+  first.closest('.fld').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  if (!first.readOnly) setTimeout(() => first.focus({ preventScroll: true }), 300);
+}
+
+function clearFieldError(inp) {
+  const box = inp && inp.closest && inp.closest('.fld');
+  if (box && box.classList.contains('invalid')) {
+    box.classList.remove('invalid');
+    $('.ferr', box).textContent = '';
+    const form = inp.form;
+    if (form && !form.querySelector('.fld.invalid')) $('#sale-err').innerHTML = '';
+  }
+}
+
+function clearErrors(form) {
+  form.querySelectorAll('.fld.invalid').forEach(b => { b.classList.remove('invalid'); $('.ferr', b).textContent = ''; });
+  const eb = $('#sale-err'); if (eb) eb.innerHTML = '';
+}
+
+// ───────── 주소 검색 (카카오 우편번호 서비스) ─────────
+let postcodeLoading = null;
+function loadPostcode() {
+  if (window.daum && window.daum.Postcode) return Promise.resolve();
+  if (!postcodeLoading) {
+    postcodeLoading = new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://t1.kakaocdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js';
+      s.onload = resolve;
+      s.onerror = () => { postcodeLoading = null; reject(new Error('주소 검색을 불러오지 못했습니다.')); };
+      document.head.appendChild(s);
+    });
+  }
+  return postcodeLoading;
+}
+
+async function openAddressSearch(onPick) {
+  try { await loadPostcode(); }
+  catch (e) { toast(e.message + ' 주소를 직접 입력해 주세요.', 'err'); return false; }
+  const wrap = document.createElement('div');
+  wrap.className = 'modal';
+  wrap.innerHTML = `<div class="card addr-card">
+    <div class="card-h" style="margin-bottom:10px"><h2>주소 검색</h2><button class="btn ghost sm" data-close>닫기</button></div>
+    <div id="pc-box"></div></div>`;
+  document.body.appendChild(wrap);
+  const close = () => wrap.remove();
+  wrap.addEventListener('click', e => { if (e.target === wrap || e.target.closest('[data-close]')) close(); });
+  new daum.Postcode({
+    width: '100%', height: '100%',
+    oncomplete(d) {
+      let addr = d.userSelectedType === 'J' ? d.jibunAddress : d.roadAddress;
+      if (d.userSelectedType !== 'J') {
+        const extra = [];
+        if (d.bname && /[동로가]$/.test(d.bname)) extra.push(d.bname);
+        if (d.buildingName && d.apartment === 'Y') extra.push(d.buildingName);
+        if (extra.length) addr += ` (${extra.join(', ')})`;
+      }
+      onPick(addr);
+      close();
+    },
+  }).embed($('#pc-box', wrap));
+  return true;
+}
+
+// ───────── 직원: 내 영업 목록 ─────────
+async function renderMine() {
+  main().innerHTML = '<div class="loading">불러오는 중…</div>';
+  try { S.mine = await call('mySales'); } catch (e) { main().innerHTML = `<div class="empty">${esc(e.message)}</div>`; return; }
+  const m = thisMonth();
+  const cnt = k => S.mine.filter(s => (s[k] || '').startsWith(m)).length;
+  main().innerHTML = `
+    <div class="stats">
+      <div class="stat"><div class="l">전체 등록</div><div class="v">${S.mine.length}<small>건</small></div></div>
+      <div class="stat"><div class="l">이번 달 접수</div><div class="v">${cnt('docDate')}<small>건</small></div></div>
+      <div class="stat"><div class="l">이번 달 결산</div><div class="v">${cnt('installDate')}<small>건</small></div></div>
+    </div>
+    <div class="toolbar">
+      <input class="inp" id="q" placeholder="상호명, 대표자, 사업자번호 검색">
+      <select class="inp" id="stage">
+        <option value="">전체 상태</option><option value="none">미접수</option>
+        <option value="doc">서류접수</option><option value="ship">출고대기</option><option value="install">설치완료</option>
+      </select>
+    </div>
+    <div class="list" id="mine-list"></div>`;
+  const draw = () => {
+    const q = $('#q').value.trim().toLowerCase(), qd = digits(q), st = $('#stage').value;
+    const rows = S.mine.filter(s =>
+      (!st || stageOf(s) === st) &&
+      (!q || [s.company, s.ceo].join(' ').toLowerCase().includes(q) || (qd && digits(s.bizNo + s.ceoPhone).includes(qd))));
+    $('#mine-list').innerHTML = rows.length ? rows.map(s => `
+      <article class="item">
+        <div class="item-h"><span class="t">${esc(s.company)}</span><span class="sp"></span>
+          <button class="btn sm" data-edit="${s.id}">수정</button></div>
+        <div class="item-sub"><span>${esc(s.bizNo)}</span><span>대표 ${esc(s.ceo)}</span><span>${esc(s.ceoPhone)}</span><span>등록 ${esc(s.createdAt.slice(0, 10))}</span></div>
+        ${chips(s)}
+      </article>`).join('') : `<div class="empty">${S.mine.length ? '검색 결과가 없습니다.' : '아직 등록한 영업 내역이 없습니다.'}</div>`;
+  };
+  $('#q').oninput = draw; $('#stage').onchange = draw;
+  $('#mine-list').onclick = e => {
+    const b = e.target.closest('[data-edit]');
+    if (b) renderSaleForm(S.mine.find(s => s.id === b.dataset.edit));
+  };
+  draw();
+}
+
+// ───────── 직원: 전체 현황 (월별 전체 건수만) ─────────
+async function renderTeam() {
+  const cur = new Date().getFullYear();
+  if (!S.year) S.year = cur;
+  const years = [];
+  for (let y = cur; y >= Math.min(2026, cur); y--) years.push(y);
+  main().innerHTML = `
+    <section class="card">
+      <div class="card-h"><h2>월별 실적 현황</h2>
+        <select class="inp" id="year" style="width:auto">${years.map(y => `<option value="${y}" ${y == S.year ? 'selected' : ''}>${y}년</option>`).join('')}</select></div>
+      <div class="note" style="margin-bottom:12px">전체 직원 합계 건수입니다. 접수 = 서류접수일 기준, 결산 = 설치완료일 기준 (매월 1일 ~ 말일)</div>
+      <div id="team-body"><div class="loading">불러오는 중…</div></div>
+    </section>`;
+  const load = async () => {
+    S.year = Number($('#year').value);
+    $('#team-body').innerHTML = '<div class="loading">불러오는 중…</div>';
+    try {
+      const rows = await call('monthlyTotals', { year: S.year });
+      const nowM = thisMonth();
+      const curRow = rows.find(r => r.month === nowM);
+      const sum = k => rows.reduce((a, r) => a + r[k], 0);
+      $('#team-body').innerHTML = `
+        ${curRow ? `<div class="stats" style="grid-template-columns:1fr 1fr">
+          <div class="stat"><div class="l">이번 달 접수</div><div class="v">${curRow.received}<small>건</small></div></div>
+          <div class="stat"><div class="l">이번 달 결산</div><div class="v">${curRow.settled}<small>건</small></div></div></div>` : ''}
+        <table class="tbl">
+          <thead><tr><th>월</th><th class="n">접수</th><th class="n">결산</th></tr></thead>
+          <tbody>${rows.map(r => {
+            const future = r.month > nowM;
+            return `<tr class="${r.month === nowM ? 'me' : ''}"><td>${Number(r.month.slice(5))}월</td>
+              <td class="n">${future ? '<span class="muted">-</span>' : r.received}</td>
+              <td class="n">${future ? '<span class="muted">-</span>' : r.settled}</td></tr>`;
+          }).join('')}</tbody>
+          <tfoot><tr><td>${S.year}년 합계</td><td class="n">${sum('received')}</td><td class="n">${sum('settled')}</td></tr></tfoot>
+        </table>`;
+    } catch (e) { $('#team-body').innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
+  };
+  $('#year').onchange = load;
+  load();
+}
+
+function summaryTable(rows) {
+  if (!rows.length) return '<div class="empty">해당 월의 데이터가 없습니다.</div>';
+  const sum = k => rows.reduce((a, r) => a + r[k], 0);
+  return `<table class="tbl">
+    <thead><tr><th style="width:44px">순위</th><th>직원</th><th class="n">접수</th><th class="n">결산</th></tr></thead>
+    <tbody>${rows.map((r, i) => `<tr class="${r.me ? 'me' : ''}"><td>${i + 1}</td><td>${esc(r.name)}${r.me ? ' <span class="small muted">(나)</span>' : ''}</td><td class="n">${r.received}</td><td class="n">${r.settled}</td></tr>`).join('')}</tbody>
+    <tfoot><tr><td></td><td>합계</td><td class="n">${sum('received')}</td><td class="n">${sum('settled')}</td></tr></tfoot>
+  </table>`;
+}
+
+// ───────── 관리자 ─────────
+async function loadAdmin() {
+  try {
+    const d = await call('adminData');
+    S.users = d.users; S.sales = d.sales;
+  } catch (e) { toast(e.message, 'err'); }
+  updateBadge();
+}
+function updateBadge() {
+  const b = $('#badge-pending');
+  if (b) { const n = S.users.filter(u => u.status === '대기').length; b.textContent = n || ''; }
+}
+const staffUsers = () => S.users.filter(u => u.role === '직원');
+
+// 가입 승인
+function renderPending() {
+  const rows = S.users.filter(u => u.status === '대기');
+  main().innerHTML = `
+    <section class="card">
+      <div class="card-h"><h2>가입 승인 대기</h2><button class="btn sm" id="reload">새로고침</button></div>
+      <div class="list">${rows.length ? rows.map(u => `
+        <article class="item">
+          <div class="item-h"><span class="t">${esc(u.name)}</span><span class="pill 대기">대기</span><span class="sp"></span>
+            <div class="row-btns"><button class="btn sm danger" data-st="거절" data-id="${u.id}">거절</button>
+            <button class="btn sm ok" data-st="승인" data-id="${u.id}">승인</button></div></div>
+          <div class="item-sub"><span>${esc(u.phone)}</span><span>아이디 ${esc(u.loginId)}</span><span>신청 ${esc(u.createdAt)}</span></div>
+        </article>`).join('') : '<div class="empty">승인 대기 중인 직원이 없습니다.</div>'}</div>
+    </section>`;
+  $('#reload').onclick = async e => { await busy(e.target, loadAdmin); renderPending(); };
+  main().onclick = userStatusClick(renderPending);
+}
+
+function userStatusClick(rerender) {
+  return async e => {
+    const b = e.target.closest('[data-st]');
+    if (b) {
+      const u = S.users.find(x => x.id === b.dataset.id);
+      const st = b.dataset.st;
+      const q = { '승인': `${u.name}님을 승인할까요?`, '거절': `${u.name}님의 가입을 거절할까요?`, '중지': `${u.name}님의 사용을 중지할까요?` }[st];
+      if (!(await window.ask(q, st, st !== '승인'))) return;
+      await busy(b, async () => {
+        const nu = await call('setUserStatus', { id: u.id, status: st });
+        Object.assign(u, nu);
+        toast(`${u.name}님: ${st} 처리되었습니다.`);
+        updateBadge(); rerender();
+      });
+      return;
+    }
+    const r = e.target.closest('[data-reset]');
+    if (r) {
+      const u = S.users.find(x => x.id === r.dataset.reset);
+      modal(`
+        <div class="card-h"><h2>비밀번호 초기화</h2></div>
+        <p class="muted small" style="margin-top:-8px">${esc(u.name)}님(${esc(u.loginId)})에게 알려줄 새 비밀번호를 입력하세요.</p>
+        <form class="form">
+          <label class="fld"><span>새 비밀번호 (6자 이상)</span><input name="password" required></label>
+          <div class="actions"><button type="button" class="btn" data-close>취소</button><button class="btn primary">변경</button></div>
+        </form>`, async d => {
+        await call('resetPassword', { id: u.id, password: d.password });
+        toast('비밀번호가 변경되었습니다.');
+      });
+    }
+  };
+}
+
+// 영업 내역 (전체)
+function renderAdminSales() {
+  const owners = staffUsers();
+  main().onclick = null;
+  main().innerHTML = `
+    <div class="toolbar">
+      <input class="inp" id="q" placeholder="상호명, 대표자, 사업자번호 검색" value="${esc(S.f.q)}">
+      <select class="inp" id="owner"><option value="">전체 직원</option>${owners.map(u => `<option value="${u.id}" ${S.f.owner === u.id ? 'selected' : ''}>${esc(u.name)}</option>`).join('')}</select>
+      <select class="inp" id="stage">
+        ${[['', '전체 상태'], ['none', '미접수'], ['doc', '서류접수'], ['ship', '출고대기'], ['install', '설치완료']].map(([k, l]) => `<option value="${k}" ${S.f.stage === k ? 'selected' : ''}>${l}</option>`).join('')}
+      </select>
+      <button class="btn" id="reload">새로고침</button>
+    </div>
+    <div class="small muted" id="sales-count" style="margin:0 2px 8px"></div>
+    <div class="list" id="sales-list"></div>`;
+  const draw = () => {
+    S.f = { q: $('#q').value.trim(), owner: $('#owner').value, stage: $('#stage').value };
+    const q = S.f.q.toLowerCase(), qd = digits(q);
+    const rows = S.sales.filter(s =>
+      (!S.f.owner || s.ownerId === S.f.owner) && (!S.f.stage || stageOf(s) === S.f.stage) &&
+      (!q || [s.company, s.ceo, s.ownerName].join(' ').toLowerCase().includes(q) || (qd && digits(s.bizNo + s.ceoPhone).includes(qd))));
+    $('#sales-count').textContent = `${rows.length}건`;
+    $('#sales-list').innerHTML = rows.length ? rows.map(saleCardAdmin).join('') : '<div class="empty">영업 내역이 없습니다.</div>';
+  };
+  $('#q').oninput = draw; $('#owner').onchange = draw; $('#stage').onchange = draw;
+  $('#reload').onclick = async e => { await busy(e.target, loadAdmin); draw(); };
+
+  const list = $('#sales-list');
+  list.addEventListener('change', async e => {
+    const el = e.target;
+    if (!el.dataset.f) return;
+    const id = el.dataset.sid, f = el.dataset.f;
+    const box = el.closest('.st');
+    const cb = $('input[type=checkbox]', box), dt = $('input[type=date]', box);
+    let date;
+    if (el.type === 'checkbox') {
+      if (!el.checked && !(await ask('체크를 해제하면 날짜가 지워집니다. 해제할까요?', '해제', true))) { el.checked = true; return; }
+      date = el.checked ? (dt.value || today()) : '';
+    } else {
+      date = dt.value;
+    }
+    cb.disabled = dt.disabled = true;
+    try {
+      const ns = await call('setSaleStatus', { id, field: f, date });
+      Object.assign(S.sales.find(s => s.id === id), ns);
+      cb.checked = !!date; dt.value = date; box.classList.toggle('on', !!date);
+      toast(`${STAT.find(x => x[0] === f)[1]} ${date ? date + ' 체크' : '해제'}되었습니다.`);
+    } catch (err) {
+      toast(err.message, 'err');
+      const s = S.sales.find(x => x.id === id);
+      cb.checked = !!s[f]; dt.value = s[f];
+    } finally { cb.disabled = dt.disabled = false; }
+  });
+  list.addEventListener('click', async e => {
+    const b = e.target.closest('[data-del]');
+    if (!b) return;
+    const s = S.sales.find(x => x.id === b.dataset.del);
+    if (!(await ask(`'${s.company}' 영업 내역을 삭제할까요? 되돌릴 수 없습니다.`, '삭제', true))) return;
+    await busy(b, async () => {
+      await call('deleteSale', { id: s.id });
+      S.sales = S.sales.filter(x => x.id !== s.id);
+      toast('삭제되었습니다.'); draw();
+    });
+  });
+  draw();
+}
+
+function saleCardAdmin(s) {
+  return `
+  <article class="item">
+    <div class="item-h"><span class="t">${esc(s.company)}</span><span class="owner">${esc(s.ownerName)}</span><span class="sp"></span>
+      <span class="small muted">등록 ${esc(s.createdAt)}</span></div>
+    <div class="item-sub"><span>${esc(s.bizNo)}</span><span>대표 ${esc(s.ceo)}</span><span>${esc(s.ceoPhone)}</span></div>
+    <div class="st-edit">${STAT.map(([k, l]) => `
+      <div class="st ${k} ${s[k] ? 'on' : ''}">
+        <label><input type="checkbox" data-sid="${s.id}" data-f="${k}" ${s[k] ? 'checked' : ''}><span>${l}</span></label>
+        <input type="date" data-sid="${s.id}" data-f="${k}" value="${esc(s[k])}">
+      </div>`).join('')}</div>
+    <details><summary>상세 보기</summary>
+      <dl class="kv">
+        <dt>사업장 주소</dt><dd>${esc(s.address) || '-'}</dd>
+        <dt>이메일</dt><dd>${esc(s.email) || '-'}</dd>
+        <dt>특이사항</dt><dd class="memo">${esc(s.memo) || '-'}</dd>
+        <dt>최종 수정</dt><dd>${esc(s.updatedAt)}</dd>
+      </dl>
+      <div class="actions" style="margin-top:10px"><button class="btn sm danger" data-del="${s.id}">삭제</button></div>
+    </details>
+  </article>`;
+}
+
+// 실적 (접수 / 결산)
+function renderReport() {
+  main().onclick = null;
+  main().innerHTML = `
+    <section class="card">
+      <div class="card-h"><h2>업무 실적</h2>
+        <input type="month" class="inp" id="month" value="${S.month}" style="width:auto">
+        <button class="btn sm" id="reload">새로고침</button></div>
+      <div class="note" style="margin-bottom:12px">접수 = 서류접수일 기준, 결산 = 설치완료일 기준 (매월 1일 ~ 말일)</div>
+      <div id="rep-table"></div>
+    </section>
+    <section class="card">
+      <div class="card-h"><h2 id="rep-title"></h2>
+        <div class="seg"><button data-m="received">접수</button><button data-m="settled">결산</button></div></div>
+      <div id="rep-list"></div>
+    </section>`;
+  const draw = () => {
+    S.month = $('#month').value || thisMonth();
+    const m = S.month;
+    const map = {};
+    staffUsers().filter(u => u.status === '승인').forEach(u => { map[u.id] = { id: u.id, name: u.name, received: 0, settled: 0 }; });
+    const rec = [], set = [];
+    S.sales.forEach(s => {
+      const r = map[s.ownerId] || (map[s.ownerId] = { id: s.ownerId, name: s.ownerName, received: 0, settled: 0 });
+      if ((s.docDate || '').startsWith(m)) { r.received++; rec.push(s); }
+      if ((s.installDate || '').startsWith(m)) { r.settled++; set.push(s); }
+    });
+    const rows = Object.values(map).sort((a, b) => b.settled - a.settled || b.received - a.received || a.name.localeCompare(b.name));
+    $('#rep-table').innerHTML = summaryTable(rows);
+
+    const mode = S.repMode;
+    document.querySelectorAll('.seg button').forEach(b => b.classList.toggle('on', b.dataset.m === mode));
+    const key = mode === 'received' ? 'docDate' : 'installDate';
+    const items = (mode === 'received' ? rec : set).slice().sort((a, b) => b[key].localeCompare(a[key]));
+    const [y, mo] = m.split('-');
+    $('#rep-title').textContent = `${y}년 ${Number(mo)}월 ${mode === 'received' ? '접수' : '결산'} 내역 (${items.length}건)`;
+    $('#rep-list').innerHTML = items.length ? `<table class="tbl">
+      <thead><tr><th>${mode === 'received' ? '접수일' : '설치완료일'}</th><th>상호명</th><th>담당</th></tr></thead>
+      <tbody>${items.map(s => `<tr><td>${esc(s[key])}</td><td>${esc(s.company)}<div class="small muted">${esc(s.bizNo)}</div></td><td>${esc(s.ownerName)}</td></tr>`).join('')}</tbody>
+    </table>` : '<div class="empty">해당 월의 내역이 없습니다.</div>';
+  };
+  $('#month').onchange = draw;
+  $('.seg').onclick = e => { const b = e.target.closest('[data-m]'); if (b) { S.repMode = b.dataset.m; draw(); } };
+  $('#reload').onclick = async e => { await busy(e.target, loadAdmin); draw(); };
+  draw();
+}
+
+// 직원 관리
+function renderStaff() {
+  const rows = staffUsers().filter(u => u.status !== '대기');
+  const m = thisMonth();
+  const count = (id, k) => S.sales.filter(s => s.ownerId === id && (s[k] || '').startsWith(m)).length;
+  main().innerHTML = `
+    <section class="card">
+      <div class="card-h"><h2>직원 관리</h2><span class="small muted">이번 달 접수 / 결산</span></div>
+      <div class="list">${rows.length ? rows.map(u => `
+        <article class="item">
+          <div class="item-h"><span class="t">${esc(u.name)}</span><span class="pill ${u.status}">${u.status}</span><span class="sp"></span>
+            <span class="small">접수 <b>${count(u.id, 'docDate')}</b> · 결산 <b>${count(u.id, 'installDate')}</b></span></div>
+          <div class="item-sub"><span>${esc(u.phone)}</span><span>아이디 ${esc(u.loginId)}</span><span>가입 ${esc(u.createdAt.slice(0, 10))}</span>
+            <span>전체 등록 ${S.sales.filter(s => s.ownerId === u.id).length}건</span></div>
+          <div class="row-btns" style="margin-top:10px">
+            ${u.status === '승인'
+              ? `<button class="btn sm" data-reset="${u.id}">비밀번호 초기화</button><button class="btn sm danger" data-st="중지" data-id="${u.id}">사용 중지</button>`
+              : `<button class="btn sm ok" data-st="승인" data-id="${u.id}">다시 승인</button>`}
+          </div>
+        </article>`).join('') : '<div class="empty">등록된 직원이 없습니다.</div>'}</div>
+    </section>`;
+  main().onclick = userStatusClick(renderStaff);
+}
+
+boot();
+</script>
+</body>
+</html>
