@@ -225,6 +225,16 @@ function fmtPhone(v) {
   if (d.length <= 10) return d.slice(0, 3) + '-' + d.slice(3, 6) + '-' + d.slice(6);
   return d.slice(0, 3) + '-' + d.slice(3, 7) + '-' + d.slice(7);
 }
+// 사업자등록번호 마지막 자리(검증번호) 확인 — 오타를 저장 전에 잡아냄
+function validBiz(v) {
+  const d = digits(v);
+  if (d.length !== 10 || /^0+$/.test(d)) return false;
+  const w = [1, 3, 7, 1, 3, 7, 1, 3, 5];
+  let sum = 0;
+  for (let i = 0; i < 9; i++) sum += Number(d[i]) * w[i];
+  sum += Math.floor(Number(d[8]) * 5 / 10);
+  return (10 - (sum % 10)) % 10 === Number(d[9]);
+}
 function fmtBiz(v) {
   const d = digits(v).slice(0, 10);
   if (d.length <= 3) return d;
@@ -546,6 +556,7 @@ function renderSaleForm(sale) {
     hint.className = 'hint'; hint.textContent = '';
     if (!d) return;
     if (d.length !== 10) { hint.className = 'hint err'; hint.textContent = '10자리를 입력해 주세요.'; return; }
+    if (!validBiz(d)) { hint.className = 'hint err'; hint.textContent = '올바르지 않은 사업자등록번호입니다. 번호를 다시 확인해 주세요.'; return; }
     const seq = ++bizSeq;
     try {
       const r = await call('checkBizNo', { bizNo: d, excludeId: v.id || '' });
@@ -603,6 +614,7 @@ function validateSale(form) {
   SALE_REQ.forEach(([n, l]) => { if (!val(n)) errs.push({ name: n, label: l, msg: `${l}${josa(l)} 입력해 주세요.`, empty: true }); });
   const has = n => !errs.some(e => e.name === n);
   if (has('bizNo') && digits(val('bizNo')).length !== 10) errs.push({ name: 'bizNo', label: '사업자등록번호', msg: '사업자등록번호 10자리를 모두 입력해 주세요.' });
+  else if (has('bizNo') && !validBiz(val('bizNo'))) errs.push({ name: 'bizNo', label: '사업자등록번호', msg: '올바르지 않은 사업자등록번호입니다. 번호를 다시 확인해 주세요.' });
   if (has('ceoPhone') && digits(val('ceoPhone')).length < 10) errs.push({ name: 'ceoPhone', label: '대표자 휴대폰번호', msg: '휴대폰번호를 끝까지 입력해 주세요.' });
   if (has('email') && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val('email'))) errs.push({ name: 'email', label: '이메일 주소', msg: '이메일 형식이 맞지 않습니다. (예: name@email.com)' });
   // 화면 순서대로 정렬
@@ -612,6 +624,7 @@ function validateSale(form) {
 
 function showErrors(form, errs) {
   clearErrors(form);
+  if (errs.some(e => e.name === 'bizNo')) { const h = $('#biz-hint'); if (h) { h.className = 'hint'; h.textContent = ''; } }
   errs.forEach(e => {
     const box = form[e.name].closest('.fld');
     box.classList.add('invalid');
