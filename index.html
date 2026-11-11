@@ -110,6 +110,13 @@ a{color:var(--accent)}
 .stat .l{font-size:13px;color:var(--muted)}
 .stat .v{font-size:24px;font-weight:700;margin-top:2px}
 .stat .v small{font-size:14px;font-weight:600;color:var(--muted);margin-left:2px}
+.stat .s{font-size:12.5px;color:var(--muted);margin-top:2px}
+.stats.money .v{font-size:22px;font-variant-numeric:tabular-nums}
+.stat.rev .v{color:var(--doc)} .stat.cost .v{color:var(--ship)}
+.stat.profit{border-color:var(--inst);background:var(--inst-soft)} .stat.profit .v{color:var(--inst)}
+@media (max-width:560px){.stats.money{grid-template-columns:1fr}.stats.money .stat{display:grid;grid-template-columns:auto 1fr;align-items:baseline;gap:0 12px}.stats.money .v{text-align:right}.stats.money .s{grid-column:1/-1}}
+.money-tbl{font-size:13.5px} .money-tbl th,.money-tbl td{white-space:nowrap} .money-tbl td.profit-t{color:var(--inst);font-weight:600}
+@media (max-width:560px){.money-tbl{font-size:12.5px}.money-tbl th,.money-tbl td{padding:9px 4px}}
 
 /* 목록 아이템 */
 .list{display:grid;gap:10px}
@@ -926,7 +933,11 @@ function saleCardAdmin(s) {
   </article>`;
 }
 
-// 실적 (접수 / 결산)
+// 실적 (접수 / 결산 / 손익)
+const REVENUE_PER = 100000; // 설치완료 1건당 수익
+const COST_PER = 40000;     // 설치완료 1건당 지출
+const won = n => n.toLocaleString('ko-KR') + '원';
+
 function renderReport() {
   main().onclick = null;
   main().innerHTML = `
@@ -935,7 +946,12 @@ function renderReport() {
         <input type="month" class="inp" id="month" value="${S.month}" style="width:auto">
         <button class="btn sm" id="reload">새로고침</button></div>
       <div class="note" style="margin-bottom:12px">접수 = 서류접수일 기준, 결산 = 설치완료일 기준 (매월 1일 ~ 말일)</div>
+      <div id="rep-money"></div>
       <div id="rep-table"></div>
+    </section>
+    <section class="card">
+      <div class="card-h"><h2 id="year-title"></h2></div>
+      <div id="rep-year"></div>
     </section>
     <section class="card">
       <div class="card-h"><h2 id="rep-title"></h2>
@@ -955,6 +971,33 @@ function renderReport() {
     });
     const rows = Object.values(map).sort((a, b) => b.settled - a.settled || b.received - a.received || a.name.localeCompare(b.name));
     $('#rep-table').innerHTML = summaryTable(rows);
+
+    // 이번 달 손익 (설치완료 건수 기준)
+    const n = set.length, rev = n * REVENUE_PER, cost = n * COST_PER;
+    $('#rep-money').innerHTML = `<div class="stats money">
+      <div class="stat rev"><div class="l">수익</div><div class="v">${won(rev)}</div><div class="s">설치완료 ${n}건 × ${won(REVENUE_PER)}</div></div>
+      <div class="stat cost"><div class="l">지출</div><div class="v">${won(cost)}</div><div class="s">설치완료 ${n}건 × ${won(COST_PER)}</div></div>
+      <div class="stat profit"><div class="l">순이익</div><div class="v">${won(rev - cost)}</div><div class="s">수익 − 지출</div></div>
+    </div>`;
+
+    // 올해 월별 손익
+    const year = m.slice(0, 4), nowM = thisMonth();
+    const months = Array.from({ length: 12 }, (_, i) => {
+      const mm = year + '-' + pad(i + 1);
+      const c = S.sales.filter(s => (s.installDate || '').startsWith(mm)).length;
+      return { mm, c, future: mm > nowM };
+    });
+    const tot = months.reduce((a, x) => a + x.c, 0);
+    $('#year-title').textContent = `${year}년 월별 손익`;
+    const num = v => v.toLocaleString('ko-KR');
+    $('#rep-year').innerHTML = `<div class="small muted" style="text-align:right;margin-bottom:4px">단위: 원</div>
+    <table class="tbl money-tbl">
+      <thead><tr><th>월</th><th class="n">건수</th><th class="n">수익</th><th class="n">지출</th><th class="n">순이익</th></tr></thead>
+      <tbody>${months.map(x => x.future
+        ? `<tr><td>${Number(x.mm.slice(5))}월</td><td class="n muted">-</td><td class="n muted">-</td><td class="n muted">-</td><td class="n muted">-</td></tr>`
+        : `<tr class="${x.mm === m ? 'me' : ''}"><td>${Number(x.mm.slice(5))}월</td><td class="n">${x.c}</td><td class="n">${num(x.c * REVENUE_PER)}</td><td class="n">${num(x.c * COST_PER)}</td><td class="n profit-t">${num(x.c * (REVENUE_PER - COST_PER))}</td></tr>`).join('')}</tbody>
+      <tfoot><tr><td>합계</td><td class="n">${tot}</td><td class="n">${num(tot * REVENUE_PER)}</td><td class="n">${num(tot * COST_PER)}</td><td class="n profit-t">${num(tot * (REVENUE_PER - COST_PER))}</td></tr></tfoot>
+    </table>`;
 
     const mode = S.repMode;
     document.querySelectorAll('.seg button').forEach(b => b.classList.toggle('on', b.dataset.m === mode));
